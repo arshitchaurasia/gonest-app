@@ -41,8 +41,6 @@ class GokwikServices {
       final response = await http
           .post(url, headers: headers, body: jsonEncode(payload));
 
-      print(response);
-
       final body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -85,14 +83,11 @@ class GokwikServices {
 
     try {
 
-      print(jsonEncode(payload));
       final response = await http
           .post(url, headers: headers, body: jsonEncode(payload))
           .timeout(timeout);
 
       final body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
-
-      print(body);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return Map<String, dynamic>.from(body);

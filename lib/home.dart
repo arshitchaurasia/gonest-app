@@ -2,9 +2,10 @@ import 'package:digia_ui/digia_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gonest/gokwik.service.dart';
+import 'package:gonest/gokwik/item.service.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key}); 
+  const Home({super.key});
 
   @override
   State<Home> createState() => _HomeState();
@@ -22,7 +23,6 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
         final resp = await GokwikServices.sendOtp(
           (event.payload as Map<String, dynamic>)['phone'],
         );
-        print(resp);
       } catch (e) {
         print("Error  : $e");
       }
@@ -56,6 +56,65 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
             fontSize: 14.0,
           );
         }
+      } catch (e) {
+        print("Error  : $e");
+      }
+    });
+
+    addMessageHandler('getMerchantCollections', (event) async {
+      final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
+      final merchantName =
+          (event.payload as Map<String, dynamic>)["merchant_name"];
+
+      print("Merchant Name : $merchantName");
+      print("Merchant ID : $merchantId");
+
+      if (merchantId == null) {
+        print("Merchant ID is required");
+        return;
+      }
+
+      try {
+        final resp = await GokwikItemServices.getMerchantCollections(
+          merchantId,
+          merchantName,
+        );
+
+        Navigator.of(context).push(
+          DUIFactory().createPageRoute("brand_page-5wJ4NG", {"brand": resp}),
+        );
+      } catch (e) {
+        print("Error  : $e");
+      }
+    });
+
+    addMessageHandler('getCollectionProducts', (event) async {
+
+      final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
+      final collectionId =
+          (event.payload as Map<String, dynamic>)["collection_id"];
+      final collectionName =
+          (event.payload as Map<String, dynamic>)["collection_name"];
+
+      print("Collection ID : $collectionId");
+
+      if (collectionId == null || merchantId == null) {
+        print("Collection ID and Merchant ID is required");
+        return;
+      }
+
+      try {
+        final resp = await GokwikItemServices.getCollectionProducts(
+          merchantId,
+          collectionId,
+          collectionName
+        );
+
+        Navigator.of(context).push(
+          DUIFactory().createPageRoute("collection_results-5XrEMK", {
+            "collection": resp,
+          }),
+        );
       } catch (e) {
         print("Error  : $e");
       }
