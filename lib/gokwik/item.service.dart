@@ -143,7 +143,6 @@ class GokwikItemServices {
     String collectionId,
     String collectionName,
   ) async {
-
     print(merchantId);
     merchantId = "19g6jlimtqamw";
 
@@ -209,6 +208,9 @@ class GokwikItemServices {
     required String merchantId,
     required List<String> productIds,
   }) async {
+    print(merchantId);
+    merchantId = "19g6jlimtqamw";
+
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'gk-merchant-id': merchantId,
