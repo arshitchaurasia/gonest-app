@@ -26,9 +26,9 @@ class _CheckoutWebViewState extends State<CheckoutWebView> {
 
             print("URL: $url");
 
-            // 🔥 detect success
-            if (url.contains("thank_you") ||
-                url.contains("order-success")) {
+            // 🔥 detect success status
+            if (url.contains("thank_you" ) ||
+                url.contains("order-success" )) {
 
               Navigator.pop(context);
 

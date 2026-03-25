@@ -31,39 +31,43 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
 
     // Handler to buy now
 
-  addMessageHandler('buyNow', (event) async {
-  try {
-    final payload = event.payload as Map<String, dynamic>;
+    addMessageHandler('buyNow', (event) async {
+      try {
+        final payload = event.payload as Map<String, dynamic>;
 
-    final variantId = payload['variantId'];
+        final variantId = payload['variantId'];
 
-    if (variantId == null) {
-      print("Variant ID missing");
-      return;
-    }
-    final checkoutUrl =
-        await GokwikServices.createCheckoutLink(variantId);
+        if (variantId == null) {
+          print("Variant ID missing");
+          return;
+        }
 
-    //Navigator.pop(context); // remove loader
+        // 🔥 Loader
+        // showDialog(
+        //   context: context,
+        //   barrierDismissible: false,
+        //   builder: (_) => const Center(child: CircularProgressIndicator()),
+        // );
 
-    print("checkoutUrl: $checkoutUrl");
+        final checkoutUrl = await GokwikServices.createCheckoutLink(variantId);
 
-    if (checkoutUrl == null) {
-      print("checkoutUrl not received");
-      return;
-    }
+        //Navigator.pop(context); // remove loader
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CheckoutWebView(url: checkoutUrl),
-      ),
-    );
+        print("checkoutUrl: $checkoutUrl");
 
-  } catch (e) {
-    print("Buy Now Error: $e");
-  }
-});
+        if (checkoutUrl == null) {
+          print("checkoutUrl not received");
+          return;
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => CheckoutWebView(url: checkoutUrl)),
+        );
+      } catch (e) {
+        print("Buy Now Error: $e");
+      }
+    });
     // Handler to verify OTP.
 
     addMessageHandler('verifyOTP', (event) async {
@@ -180,10 +184,7 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
         }
 
         Navigator.of(context).push(
-          DUIFactory().createPageRoute(
-            "pdp-QS3XcE",
-            {"product": product}, 
-          ),
+          DUIFactory().createPageRoute("pdp-QS3XcE", {"product": product}),
         );
       } catch (e) {
         print("Error  : $e");
