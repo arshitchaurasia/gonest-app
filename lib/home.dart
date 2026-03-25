@@ -31,47 +31,43 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
 
     // Handler to buy now
 
-  addMessageHandler('buyNow', (event) async {
-  try {
-    final payload = event.payload as Map<String, dynamic>;
+    addMessageHandler('buyNow', (event) async {
+      try {
+        final payload = event.payload as Map<String, dynamic>;
 
-    final variantId = payload['variantId'];
+        final variantId = payload['variantId'];
 
-    if (variantId == null) {
-      print("Variant ID missing");
-      return;
-    }
+        if (variantId == null) {
+          print("Variant ID missing");
+          return;
+        }
 
-    // 🔥 Loader
-    // showDialog(
-    //   context: context,
-    //   barrierDismissible: false,
-    //   builder: (_) => const Center(child: CircularProgressIndicator()),
-    // );
+        // 🔥 Loader
+        // showDialog(
+        //   context: context,
+        //   barrierDismissible: false,
+        //   builder: (_) => const Center(child: CircularProgressIndicator()),
+        // );
 
-    final checkoutUrl =
-        await GokwikServices.createCheckoutLink(variantId);
+        final checkoutUrl = await GokwikServices.createCheckoutLink(variantId);
 
-    //Navigator.pop(context); // remove loader
+        //Navigator.pop(context); // remove loader
 
-    print("checkoutUrl: $checkoutUrl");
+        print("checkoutUrl: $checkoutUrl");
 
-    if (checkoutUrl == null) {
-      print("checkoutUrl not received");
-      return;
-    }
+        if (checkoutUrl == null) {
+          print("checkoutUrl not received");
+          return;
+        }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CheckoutWebView(url: checkoutUrl),
-      ),
-    );
-
-  } catch (e) {
-    print("Buy Now Error: $e");
-  }
-});
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => CheckoutWebView(url: checkoutUrl)),
+        );
+      } catch (e) {
+        print("Buy Now Error: $e");
+      }
+    });
     // Handler to verify OTP.
 
     addMessageHandler('verifyOTP', (event) async {
@@ -133,7 +129,6 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
     });
 
     addMessageHandler('getCollectionProducts', (event) async {
-
       final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
       final collectionId =
           (event.payload as Map<String, dynamic>)["collection_id"];
@@ -151,13 +146,45 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
         final resp = await GokwikItemServices.getCollectionProducts(
           merchantId,
           collectionId,
-          collectionName
+          collectionName,
         );
 
         Navigator.of(context).push(
           DUIFactory().createPageRoute("collection_results-5XrEMK", {
             "collection": resp,
           }),
+        );
+      } catch (e) {
+        print("Error  : $e");
+      }
+    });
+
+    addMessageHandler("getProductDetails", (event) async {
+      final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
+      final productId = (event.payload as Map<String, dynamic>)["product_id"];
+
+      if (productId == null || merchantId == null) {
+        print("Product ID and Merchant ID is required");
+        return;
+      }
+
+      try {
+        final resp = await GokwikItemServices.getProductDetails(
+          merchantId: merchantId,
+          productIds: [productId],
+        );
+
+        final product = (resp as List<dynamic>?)?.isNotEmpty == true
+            ? resp[0]
+            : null;
+
+        if (product == null) {
+          print("No product found");
+          return;
+        }
+
+        Navigator.of(context).push(
+          DUIFactory().createPageRoute("pdp-QS3XcE", {"product": product}),
         );
       } catch (e) {
         print("Error  : $e");
