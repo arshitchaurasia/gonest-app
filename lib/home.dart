@@ -1,3 +1,4 @@
+import 'package:gonest/checkout_webview.dart';
 import 'package:digia_ui/digia_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -28,6 +29,49 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
       }
     });
 
+    // Handler to buy now
+
+  addMessageHandler('buyNow', (event) async {
+  try {
+    final payload = event.payload as Map<String, dynamic>;
+
+    final variantId = payload['variantId'];
+
+    if (variantId == null) {
+      print("Variant ID missing");
+      return;
+    }
+
+    // 🔥 Loader
+    // showDialog(
+    //   context: context,
+    //   barrierDismissible: false,
+    //   builder: (_) => const Center(child: CircularProgressIndicator()),
+    // );
+
+    final checkoutUrl =
+        await GokwikServices.createCheckoutLink(variantId);
+
+    //Navigator.pop(context); // remove loader
+
+    print("checkoutUrl: $checkoutUrl");
+
+    if (checkoutUrl == null) {
+      print("checkoutUrl not received");
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CheckoutWebView(url: checkoutUrl),
+      ),
+    );
+
+  } catch (e) {
+    print("Buy Now Error: $e");
+  }
+});
     // Handler to verify OTP.
 
     addMessageHandler('verifyOTP', (event) async {

@@ -98,5 +98,51 @@ class GokwikServices {
     } catch (e) {
       rethrow;
     }
+    }
+
+    // 🔥 NEW CHECKOUT API
+  static Future<String?> createCheckoutLink(int variantId) async {
+  final url = Uri.parse(
+      "https://sandbox-core-api.dev.gokwik.io/v1/internal/checkout-link");
+
+  final headers = {
+    "Content-Type": "application/json",
+    "auth-key": "9Hn0Nq6LpF9QZd0UuBWnJMWVcUCLRiLNu+0tLPeRuq6v3uNDktm1lhKLR7hip8hu",
+  };
+
+  final payload = {
+    "title": "checkout from app",
+    "products": [
+      {
+        "variant_id": variantId,
+        "quantity": 1
+      }
+    ],
+    "website": "sandbox-gokwik.myshopify.com",
+    "source": "api"
+  };
+
+  try {
+    final response = await http.post(
+      url,
+      headers: headers,
+      body: jsonEncode(payload),
+    );
+
+    print("Status Code: ${response.statusCode}");
+    print("Raw Body: ${response.body}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      print("Checkout API Response: $data");
+      return data["data"]?["checkout_link_data"]?["checkout_url"];
+    } else {
+      print("Error: ${response.statusCode}");
+      return null;
+    }
+  } catch (e) {
+    print("Checkout API Error: $e");
+    return null;
   }
+}
 }
