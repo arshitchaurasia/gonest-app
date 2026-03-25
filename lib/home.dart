@@ -41,14 +41,6 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
       print("Variant ID missing");
       return;
     }
-
-    // 🔥 Loader
-    // showDialog(
-    //   context: context,
-    //   barrierDismissible: false,
-    //   builder: (_) => const Center(child: CircularProgressIndicator()),
-    // );
-
     final checkoutUrl =
         await GokwikServices.createCheckoutLink(variantId);
 
@@ -133,7 +125,6 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
     });
 
     addMessageHandler('getCollectionProducts', (event) async {
-
       final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
       final collectionId =
           (event.payload as Map<String, dynamic>)["collection_id"];
@@ -151,13 +142,48 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
         final resp = await GokwikItemServices.getCollectionProducts(
           merchantId,
           collectionId,
-          collectionName
+          collectionName,
         );
 
         Navigator.of(context).push(
           DUIFactory().createPageRoute("collection_results-5XrEMK", {
             "collection": resp,
           }),
+        );
+      } catch (e) {
+        print("Error  : $e");
+      }
+    });
+
+    addMessageHandler("getProductDetails", (event) async {
+      final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
+      final productId = (event.payload as Map<String, dynamic>)["product_id"];
+
+      if (productId == null || merchantId == null) {
+        print("Product ID and Merchant ID is required");
+        return;
+      }
+
+      try {
+        final resp = await GokwikItemServices.getProductDetails(
+          merchantId: merchantId,
+          productIds: [productId],
+        );
+
+        final product = (resp as List<dynamic>?)?.isNotEmpty == true
+            ? resp[0]
+            : null;
+
+        if (product == null) {
+          print("No product found");
+          return;
+        }
+
+        Navigator.of(context).push(
+          DUIFactory().createPageRoute(
+            "pdp-QS3XcE",
+            {"product": product}, 
+          ),
         );
       } catch (e) {
         print("Error  : $e");
