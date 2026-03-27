@@ -152,7 +152,7 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
           DUIFactory().createPageRoute("collection_results-5XrEMK", {
             "collection": resp,
           }),
-        );
+        ); 
       } catch (e) {
         print("Error  : $e");
       }
