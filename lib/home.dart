@@ -32,42 +32,41 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
     // Handler to buy now
 
     addMessageHandler('buyNow', (event) async {
-      try {
-        final payload = event.payload as Map<String, dynamic>;
+  try {
+    final payload = event.payload as Map<String, dynamic>;
 
-        final variantId = payload['variantId'];
+    final variantId = int.tryParse(payload['variantId'].toString());
+    final productUrl = payload['productUrl'];
 
-        if (variantId == null) {
-          print("Variant ID missing");
-          return;
-        }
+    if (variantId == null || productUrl == null) {
+      print("Variant ID or Product URL missing");
+      return;
+    }
 
-        // 🔥 Loader
-        // showDialog(
-        //   context: context,
-        //   barrierDismissible: false,
-        //   builder: (_) => const Center(child: CircularProgressIndicator()),
-        // );
+    // 🔥 Extract domain from product URL
+    final uri = Uri.parse(productUrl);
+    final website = uri.host; // 👈 THIS IS KEY
 
-        final checkoutUrl = await GokwikServices.createCheckoutLink(variantId);
+    print("Extracted website: $website");
 
-        //Navigator.pop(context); // remove loader
+    final checkoutUrl =
+        await GokwikServices.createCheckoutLink(variantId, website);
 
-        print("checkoutUrl: $checkoutUrl");
+    print("checkoutUrl: $checkoutUrl");
 
-        if (checkoutUrl == null) {
-          print("checkoutUrl not received");
-          return;
-        }
+    if (checkoutUrl == null) {
+      print("checkoutUrl not received");
+      return;
+    }
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => CheckoutWebView(url: checkoutUrl)),
-        );
-      } catch (e) {
-        print("Buy Now Error: $e");
-      }
-    });
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => CheckoutWebView(url: checkoutUrl)),
+    );
+  } catch (e) {
+    print("Buy Now Error: $e");
+  }
+});
     // Handler to verify OTP.
 
     addMessageHandler('verifyOTP', (event) async {
@@ -159,6 +158,12 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
       }
     });
 
+    addMessageHandler('kycSubmit', (event) async {
+     final data = event.payload as Map<String, dynamic>;
+     print("KYC Data: $data");
+     await GokwikServices.sendToWebhook(data);
+   });
+
     addMessageHandler("getProductDetails", (event) async {
       final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
       final productId = (event.payload as Map<String, dynamic>)["product_id"];
@@ -191,6 +196,8 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
       }
     });
   }
+
+
 
   @override
   Widget build(BuildContext context) {
