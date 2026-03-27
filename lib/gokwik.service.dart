@@ -101,13 +101,16 @@ class GokwikServices {
     }
 
     // 🔥 NEW CHECKOUT API
-  static Future<String?> createCheckoutLink(int variantId) async {
+  static Future<String?> createCheckoutLink(
+    int variantId, String website) async {
+
   final url = Uri.parse(
-      "https://sandbox-core-api.dev.gokwik.io/v1/internal/checkout-link");
+    "https://prod-core-api-v4.gokwik.io/v1/internal/checkout-link"
+  );
 
   final headers = {
     "Content-Type": "application/json",
-    "auth-key": "9Hn0Nq6LpF9QZd0UuBWnJMWVcUCLRiLNu+0tLPeRuq6v3uNDktm1lhKLR7hip8hu",
+    "auth-key": "EB452B6BA73B11F2A36557E2391A4",
   };
 
   final payload = {
@@ -118,7 +121,7 @@ class GokwikServices {
         "quantity": 1
       }
     ],
-    "website": "sandbox-gokwik.myshopify.com",
+    "website": website, // 👈 dynamic now
     "source": "api"
   };
 
@@ -134,10 +137,9 @@ class GokwikServices {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final data = jsonDecode(response.body);
-      print("Checkout API Response: $data");
       return data["data"]?["checkout_link_data"]?["checkout_url"];
     } else {
-      print("Error: ${response.statusCode}");
+      print("Error: ${response.body}");
       return null;
     }
   } catch (e) {
@@ -145,4 +147,23 @@ class GokwikServices {
     return null;
   }
 }
+    // WebHook
+  static Future<void> sendToWebhook(Map data) async {
+  final url = Uri.parse(
+   "https://script.google.com/macros/s/AKfycbyItmXa_kpYtDwRqSFj7v4akExxlUcczKh1t6qzhPFkO8JBDqEVhp5SBsq_bZ7F0bat/exec"
+  );
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(data),
+    );
+
+    print("Response: ${response.body}");
+  } catch (e) {
+    print("Error: $e");
+  }
+}
+
 }
