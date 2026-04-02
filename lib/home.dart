@@ -50,6 +50,10 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
           print("Variant ID or Product URL missing");
           return;
         }
+        if (variantId == null || productUrl == null) {
+          print("Variant ID or Product URL missing");
+          return;
+        }
 
         final uri = Uri.parse(productUrl);
         final website = uri.host; // 👈 THIS IS KEY
@@ -60,7 +64,12 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
         );
 
         print("checkoutUrl: $checkoutUrl");
+        print("checkoutUrl: $checkoutUrl");
 
+        if (checkoutUrl == null) {
+          print("checkoutUrl not received");
+          return;
+        }
         if (checkoutUrl == null) {
           print("checkoutUrl not received");
           return;
