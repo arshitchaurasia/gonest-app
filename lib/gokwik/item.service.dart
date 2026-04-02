@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class GokwikItemServices {
-  static const String _baseUrl = 'https://sandbox-item.dev.gokwik.io/v3';
+  static const String _baseUrl = 'https://prod-item-v4.gokwik.io/v3';
   static const String _defaultPlatform = 'shopify';
   static const String _defaultRequestId = 'test-123';
 
@@ -10,8 +10,8 @@ class GokwikItemServices {
     String merchantId,
     String merchantName,
   ) async {
-    print(merchantId);
-    merchantId = "19g6jlimtqamw";
+    print("Merchant ID : $merchantId");
+    // merchantId = "12wyqc2guqmkrw6406j";
 
     final headers = <String, String>{
       'Content-Type': 'application/json',
@@ -27,6 +27,7 @@ class GokwikItemServices {
       final response = await http.get(url, headers: headers);
 
       if (response.statusCode != 200) {
+        print("Nulll Response");
         throw Exception(
           'getMerchantCollections failed (${response.statusCode}): ${response.body}',
         );
@@ -51,7 +52,7 @@ class GokwikItemServices {
       if (topCollections.isEmpty) {
         return {
           'merchant_id': merchantId,
-          'merchant_name': '',
+          'merchant_name': merchantName,
           'collections': [],
         };
       }
@@ -60,6 +61,9 @@ class GokwikItemServices {
       final collectionIds = topCollections
           .map((e) => e['collection_id'])
           .toList();
+
+      print("Collection IDs : $collectionIds");
+      print("Merchant ID : $merchantId");
 
       final productsUrl = Uri.parse('$_baseUrl/collection/products');
       final productsResp = await http.post(
@@ -143,8 +147,8 @@ class GokwikItemServices {
     String collectionId,
     String collectionName,
   ) async {
-    print(merchantId);
-    merchantId = "19g6jlimtqamw";
+    print("Merchant ID : $merchantId");
+    // merchantId = "12wyqc2guqmkrw6406j";
 
     final headers = <String, String>{
       'Content-Type': 'application/json',
@@ -208,8 +212,9 @@ class GokwikItemServices {
     required String merchantId,
     required List<String> productIds,
   }) async {
-    print(merchantId);
-    merchantId = "19g6jlimtqamw";
+    print("Merchant ID : $merchantId");
+    print("Product IDs : $productIds");
+    // merchantId = "12wyqc2guqmkrw6406j";
 
     final headers = <String, String>{
       'Content-Type': 'application/json',
@@ -234,6 +239,48 @@ class GokwikItemServices {
       if (response.statusCode != 200) {
         throw Exception(
           'Failed to fetch product details: ${response.statusCode} ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = (json['data'] as List<dynamic>? ?? []);
+
+      return data
+          .map((p) => p as Map<String, dynamic>)
+          .where(
+            (p) =>
+                p['product_id'] != null &&
+                p['product_id'].toString().isNotEmpty,
+          )
+          .toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getMerchantProducts({
+    required String merchantId,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    print("Merchant ID : $merchantId");
+
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'gk-merchant-id': merchantId,
+      'gk-is-authenticated': "true",
+      'gk-platform': _defaultPlatform,
+      'gk-request-id': _defaultRequestId,
+    };
+
+    final url = Uri.parse('$_baseUrl/product/all?page=$page&limit=$limit');
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to fetch merchant products: ${response.statusCode} ${response.body}',
         );
       }
 
