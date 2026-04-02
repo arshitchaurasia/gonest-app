@@ -32,83 +32,138 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
     // Handler to buy now
 
     addMessageHandler('buyNow', (event) async {
-  try {
-    final payload = event.payload as Map<String, dynamic>;
+      try {
+        final payload = event.payload as Map<String, dynamic>;
 
-    final variantId = int.tryParse(payload['variantId'].toString());
-    final productUrl = payload['productUrl'];
+        final variantId = int.tryParse(payload['variantId'].toString());
+        final productUrl = payload['productUrl'];
 
-    if (variantId == null || productUrl == null) {
-      print("Variant ID or Product URL missing");
-      return;
-    }
+        if (variantId == null || productUrl == null) {
+          print("Variant ID or Product URL missing");
+          return;
+        }
 
-    //  Step 1: Normalize product URL
-    String fixedProductUrl = productUrl.startsWith("http")
-        ? productUrl
-        : "https://$productUrl";
+        //  Step 1: Normalize product URL
+        String fixedProductUrl = productUrl.startsWith("http")
+            ? productUrl
+            : "https://$productUrl";
 
-    final productUri = Uri.parse(fixedProductUrl);
-    final website = productUri.host;
+        final productUri = Uri.parse(fixedProductUrl);
+        final website = productUri.host;
 
-    print("Extracted website: $website");
+        print("Extracted website: $website");
 
-    //  Step 2: Call API (to get gkref)
-    final checkoutUrl =
-        await GokwikServices.createCheckoutLink(variantId, website);
+        //  Step 2: Call API (to get gkref)
+        final checkoutUrl =
+            await GokwikServices.createCheckoutLink(variantId, website);
 
-    print("Raw checkoutUrl: $checkoutUrl");
+        print("Raw checkoutUrl: $checkoutUrl");
 
-    if (checkoutUrl == null) {
-      print("checkoutUrl not received");
-      return;
-    }
+        if (checkoutUrl == null) {
+          print("checkoutUrl not received");
+          return;
+        }
 
-    //  Step 3: Extract gkref from API URL
-    /* final checkoutUri = Uri.parse(checkoutUrl);
-    final gkref = checkoutUri.queryParameters['gkref'];
+        //  Step 3: Extract gkref from API URL
+        /* final checkoutUri = Uri.parse(checkoutUrl);
+        final gkref = checkoutUri.queryParameters['gkref'];
 
-    if (gkref == null) {
-      print("gkref not found");
-      return;
-    }
+        if (gkref == null) {
+          print("gkref not found");
+          return;
+        }
 
-    // Step 4: Remove ALL existing query params (like variant)
-    final cleanUri = productUri.replace(queryParameters: {});
+        // Step 4: Remove ALL existing query params (like variant)
+        final cleanUri = productUri.replace(queryParameters: {});
 
-    //  Step 5: Safely attach gkref (NO ?? issue)
-    final finalUri = cleanUri.replace(
-      queryParameters: {
-        'gkref': gkref,
-      },
-    );
+        //  Step 5: Safely attach gkref (NO ?? issue)
+        final finalUri = cleanUri.replace(
+          queryParameters: {
+            'gkref': gkref,
+          },
+        );
 
-    final finalCheckoutUrl = finalUri.toString();
-    
-    print("Final Checkout URL: $finalCheckoutUrl");                         
-    */
+        final finalCheckoutUrl = finalUri.toString();
+        
+        print("Final Checkout URL: $finalCheckoutUrl");                         
+        */
 
-    print("Final Checkout URL: $checkoutUrl");
+        print("Final Checkout URL: $checkoutUrl");
 
-    //  Step 6: Open WebView
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CheckoutWebView(url: checkoutUrl),
-      ),
-    );
+        //  Step 6: Open WebView
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CheckoutWebView(url: checkoutUrl),
+          ),
+        );
 
-   
-  } catch (e, stack) {
-    print("Buy Now Error: $e");
-    print("Stack: $stack");
-  }
-});  
+      } catch (e, stack) {
+        print("Buy Now Error: $e");
+        print("Stack: $stack");
+      }
+    });
 
-    /* addMessageHandler('iframe_content_loaded', (event) async {
-         print("iframe content");
-    });  // Handler to verify OTP.
-*/
+    addMessageHandler('loadHomeSections', (event) async {
+      try {
+        final payload = event.payload as Map<String, dynamic>;
+        final merchants = payload['merchants'] as List<dynamic>? ?? [];
+        final top4Merchants = merchants.take(4).toList();
+
+        // Section 1: Top Brands (all merchants as brand entries)
+        final brands = merchants.map((m) {
+          final merchant = m as Map<String, dynamic>;
+          return {
+            'merchant_id': merchant['merchant_id'] ?? '',
+            'name': merchant['name'] ?? '',
+            'logo': merchant['logo'] ?? '',
+          };
+        }).toList();
+
+        final homeSections = <Map<String, dynamic>>[
+          // {'id': 1, 'name': 'Top Brands', 'brands': brands},
+        ];
+
+        // Sections 2+: One section per top merchant with their products
+        int sectionId = 2;
+        for (final merchant in top4Merchants) {
+          final merchantMap = merchant as Map<String, dynamic>;
+          final merchantId = merchantMap['merchant_id'] as String?;
+          final merchantName = merchantMap['name'] as String?;
+
+          if (merchantId == null || merchantName == null) {
+            print("Merchant ID or Name is missing, skipping");
+            continue;
+          }
+
+          try {
+            final products = await GokwikItemServices.getMerchantProducts(
+              merchantId: merchantId,
+              page: 1,
+              limit: 10,
+            );
+
+            homeSections.add({
+              'id': sectionId,
+              'name': merchantName,
+              'merchant_id': merchantId,
+              'products': products,
+            });
+
+            sectionId++;
+          } catch (e) {
+            print("Failed to fetch products for $merchantName: $e");
+          }
+        }
+
+        DUIAppState().update<List<dynamic>>("homeTabSections", homeSections);
+
+        // DUIPageController().rebuild();
+      } catch (e) {
+        print("loadHomeSections Error: $e");
+      }
+    }); 
+
     addMessageHandler('verifyOTP', (event) async {
       final phone = (event.payload as Map<String, dynamic>)["phone"];
       final otp = (event.payload as Map<String, dynamic>)["otp"];
