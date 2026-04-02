@@ -43,32 +43,72 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
       return;
     }
 
-    // 🔥 Extract domain from product URL
-    final uri = Uri.parse(productUrl);
-    final website = uri.host; // 👈 THIS IS KEY
+    //  Step 1: Normalize product URL
+    String fixedProductUrl = productUrl.startsWith("http")
+        ? productUrl
+        : "https://$productUrl";
+
+    final productUri = Uri.parse(fixedProductUrl);
+    final website = productUri.host;
 
     print("Extracted website: $website");
 
+    //  Step 2: Call API (to get gkref)
     final checkoutUrl =
         await GokwikServices.createCheckoutLink(variantId, website);
 
-    print("checkoutUrl: $checkoutUrl");
+    print("Raw checkoutUrl: $checkoutUrl");
 
     if (checkoutUrl == null) {
       print("checkoutUrl not received");
       return;
     }
 
+    //  Step 3: Extract gkref from API URL
+    /* final checkoutUri = Uri.parse(checkoutUrl);
+    final gkref = checkoutUri.queryParameters['gkref'];
+
+    if (gkref == null) {
+      print("gkref not found");
+      return;
+    }
+
+    // Step 4: Remove ALL existing query params (like variant)
+    final cleanUri = productUri.replace(queryParameters: {});
+
+    //  Step 5: Safely attach gkref (NO ?? issue)
+    final finalUri = cleanUri.replace(
+      queryParameters: {
+        'gkref': gkref,
+      },
+    );
+
+    final finalCheckoutUrl = finalUri.toString();
+    
+    print("Final Checkout URL: $finalCheckoutUrl");                         
+    */
+
+    print("Final Checkout URL: $checkoutUrl");
+
+    //  Step 6: Open WebView
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => CheckoutWebView(url: checkoutUrl)),
+      MaterialPageRoute(
+        builder: (_) => CheckoutWebView(url: checkoutUrl),
+      ),
     );
-  } catch (e) {
-    print("Buy Now Error: $e");
-  }
-});
-    // Handler to verify OTP.
 
+   
+  } catch (e, stack) {
+    print("Buy Now Error: $e");
+    print("Stack: $stack");
+  }
+});  
+
+    /* addMessageHandler('iframe_content_loaded', (event) async {
+         print("iframe content");
+    });  // Handler to verify OTP.
+*/
     addMessageHandler('verifyOTP', (event) async {
       final phone = (event.payload as Map<String, dynamic>)["phone"];
       final otp = (event.payload as Map<String, dynamic>)["otp"];

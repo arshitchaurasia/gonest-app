@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class GokwikItemServices {
-  static const String _baseUrl = 'https://sandbox-item.dev.gokwik.io/v3';
+  static const String _baseUrl = 'https://prod-item-v4.gokwik.io/v3';
   static const String _defaultPlatform = 'shopify';
   static const String _defaultRequestId = 'test-123';
 
@@ -11,7 +11,7 @@ class GokwikItemServices {
     String merchantName,
   ) async {
     print(merchantId);
-    merchantId = "19g6jlimtqamw";
+    // merchantId = "12wyqc2guqmkrw6406j";
 
     final headers = <String, String>{
       'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ class GokwikItemServices {
     String collectionName,
   ) async {
     print(merchantId);
-    merchantId = "19g6jlimtqamw";
+   // merchantId = "12wyqc2guqmkrw6406j";
 
     final headers = <String, String>{
       'Content-Type': 'application/json',
@@ -209,7 +209,7 @@ class GokwikItemServices {
     required List<String> productIds,
   }) async {
     print(merchantId);
-    merchantId = "19g6jlimtqamw";
+   // merchantId = "12wyqc2guqmkrw6406j";
 
     final headers = <String, String>{
       'Content-Type': 'application/json',
