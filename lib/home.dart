@@ -411,8 +411,29 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
       }
     });
 
-    addMessageHandler('exit', (e) {
-      SystemNavigator.pop();
+    addMessageHandler("searchMerchantProducts", (event) async {
+      final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
+      final query = (event.payload as Map<String, dynamic>)["query"];
+
+      if (query == null || merchantId == null) {
+        print("Query and Merchant ID is required");
+        return;
+      }
+
+      try {
+        final resp = await GokwikItemServices.searchMerchantProducts(
+          merchantId: merchantId,
+          query: query,
+        );
+
+        Navigator.of(context).push(
+          DUIFactory().createPageRoute("search_results-5XrEMK", {
+            "products": resp,
+          }),
+        );
+      } catch (e) {
+        print("Error  : $e");
+      }
     });
   }
 

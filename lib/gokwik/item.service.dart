@@ -63,7 +63,6 @@ class GokwikItemServices {
           .toList();
 
       print("Collection IDs : $collectionIds");
-      print("Merchant ID : $merchantId");
 
       final productsUrl = Uri.parse('$_baseUrl/collection/products');
       final productsResp = await http.post(
@@ -281,6 +280,52 @@ class GokwikItemServices {
       if (response.statusCode != 200) {
         throw Exception(
           'Failed to fetch merchant products: ${response.statusCode} ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = (json['data'] as List<dynamic>? ?? []);
+
+      return data
+          .map((p) => p as Map<String, dynamic>)
+          .where(
+            (p) =>
+                p['product_id'] != null &&
+                p['product_id'].toString().isNotEmpty,
+          )
+          .toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> searchMerchantProducts({
+    required String merchantId,
+    required String query,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    print("Merchant ID : $merchantId");
+    print("Query : $query");
+
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'gk-merchant-id': merchantId,
+      'gk-is-authenticated': "true",
+      'gk-platform': _defaultPlatform,
+      'gk-request-id': _defaultRequestId,
+    };
+
+    final url = Uri.parse(
+      '$_baseUrl/product/search-product-details?page=$page&limit=$limit&search_term=$query',
+    );
+
+    try {
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to search merchant products: ${response.statusCode} ${response.body}',
         );
       }
 
