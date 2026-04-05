@@ -8,7 +8,7 @@ import 'package:gonest/home.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final digiaUI = await DigiaUI.initialize(
     DigiaUIOptions(
@@ -22,7 +22,7 @@ Future<void> main() async {
       digiaUI: digiaUI,
       builder: (context) =>
           MaterialApp(debugShowCheckedModeBanner: false, home: Home()),
-      // analytics: MyAppAnalytics(),
+      analytics: MyAppAnalytics(),
     ),
   );
 }

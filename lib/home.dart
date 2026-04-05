@@ -19,8 +19,6 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
   void initState() {
     super.initState();
 
-    // Handler to receive a sendOTP event from the Digia web layer.
-
     addMessageHandler('sendOTP', (event) async {
       try {
         await GokwikServices.sendOtp(
@@ -36,8 +34,6 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
         print("Error  : $e");
       }
     });
-
-    // Handler to buy now
 
     addMessageHandler('buyNow', (event) async {
       try {
@@ -412,6 +408,12 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
     });
 
     addMessageHandler("searchMerchantProducts", (event) async {
+      DUIAppState().update<Map<String, dynamic>>("api", {
+        "isLoading": true,
+        "message": "Loading",
+        "data": null,
+      });
+
       final merchantId = (event.payload as Map<String, dynamic>)["merchant_id"];
       final query = (event.payload as Map<String, dynamic>)["query"];
 
@@ -420,18 +422,41 @@ class _HomeState extends State<Home> with DigiaMessageHandlerMixin {
         return;
       }
 
+      Navigator.of(context).push(
+        DUIFactory().createPageRoute("search_results-O3yF1q", {
+          "header": query,
+        }),
+      );
+
       try {
         final resp = await GokwikItemServices.searchMerchantProducts(
           merchantId: merchantId,
           query: query,
         );
 
-        Navigator.of(context).push(
-          DUIFactory().createPageRoute("search_results-5XrEMK", {
-            "products": resp,
-          }),
-        );
+        if (resp.isEmpty) {
+          DUIAppState().update<Map<String, dynamic>>("api", {
+            "isLoading": false,
+            "message": "No products found",
+            "data": {
+              "products": resp,
+            },
+          });
+        } else {
+          DUIAppState().update<Map<String, dynamic>>("api", {
+            "isLoading": false,
+            "message": "Done",
+            "data": {
+              "products": resp,
+            },
+          });
+        }
       } catch (e) {
+        DUIAppState().update<Map<String, dynamic>>("api", {
+          "isLoading": false,
+          "message": "Something went wrong",
+          "data": null,
+        });
         print("Error  : $e");
       }
     });
